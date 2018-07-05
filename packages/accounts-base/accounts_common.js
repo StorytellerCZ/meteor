@@ -98,41 +98,47 @@ export class AccountsCommon {
   // 'forbidClientAccountCreation' only on the client and while it looks
   // like their app is secure, the server will still accept createUser
   // calls. https://github.com/meteor/meteor/issues/828
-  //
-  // @param options {Object} an object with fields:
-  // - sendVerificationEmail {Boolean}
-  //     Send email address verification emails to new users created from
-  //     client signups.
-  // - forbidClientAccountCreation {Boolean}
-  //     Do not allow clients to create accounts directly.
-  // - restrictCreationByEmailDomain {Function or String}
-  //     Require created users to have an email matching the function or
-  //     having the string as domain.
-  // - loginExpirationInDays {Number}
-  //     Number of days since login until a user is logged out (login token
-  //     expires).
-  // - passwordResetTokenExpirationInDays {Number}
-  //     Number of days since password reset token creation until the
-  //     token cannt be used any longer (password reset token expires).
-  // - ambiguousErrorMessages {Boolean}
-  //     Return ambiguous error messages from login failures to prevent
-  //     user enumeration.
-  // - bcryptRounds {Number}
-  //     Allows override of number of bcrypt rounds (aka work factor) used
-  //     to store passwords.
 
   /**
    * @summary Set global accounts options.
    * @locus Anywhere
    * @param {Object} options
-   * @param {Boolean} options.sendVerificationEmail New users with an email address will receive an address verification email.
-   * @param {Boolean} options.forbidClientAccountCreation Calls to [`createUser`](#accounts_createuser) from the client will be rejected. In addition, if you are using [accounts-ui](#accountsui), the "Create account" link will not be available.
-   * @param {String | Function} options.restrictCreationByEmailDomain If set to a string, only allows new users if the domain part of their email address matches the string. If set to a function, only allows new users if the function returns true.  The function is passed the full email address of the proposed new user.  Works with password-based sign-in and external services that expose email addresses (Google, Facebook, GitHub). All existing users still can log in after enabling this option. Example: `Accounts.config({ restrictCreationByEmailDomain: 'school.edu' })`.
-   * @param {Number} options.loginExpirationInDays The number of days from when a user logs in until their token expires and they are logged out. Defaults to 90. Set to `null` to disable login expiration.
-   * @param {String} options.oauthSecretKey When using the `oauth-encryption` package, the 16 byte key using to encrypt sensitive account credentials in the database, encoded in base64.  This option may only be specifed on the server.  See packages/oauth-encryption/README.md for details.
-   * @param {Number} options.passwordResetTokenExpirationInDays The number of days from when a link to reset password is sent until token expires and user can't reset password with the link anymore. Defaults to 3.
-   * @param {Number} options.passwordEnrollTokenExpirationInDays The number of days from when a link to set inital password is sent until token expires and user can't set password with the link anymore. Defaults to 30.
-   * @param {Boolean} options.ambiguousErrorMessages Return ambiguous error messages from login failures to prevent user enumeration. Defaults to false.
+   * @param {Boolean} options.sendVerificationEmail New users with an email
+   *            address will receive an address verification email.
+   * @param {Boolean} options.forbidClientAccountCreation Calls to
+   *            [`createUser`](#accounts_createuser) from the client will be
+   *            rejected. In addition, if you are using [accounts-ui](#accountsui),
+   *            the "Create account" link will not be available.
+   * @param {String | Function} options.restrictCreationByEmailDomain If set
+   *            to a string, only allows new users if the domain part of their
+   *            email address matches the string. If set to a function, only
+   *            allows new users if the function returns true.
+   *            The function is passed the full email address of the proposed new user.
+   *            Works with password-based sign-in and external services that
+   *            expose email addresses (Google, Facebook, GitHub). All existing
+   *            users still can log in after enabling this option.
+   *            Example: `Accounts.config({ restrictCreationByEmailDomain: 'school.edu' })`.
+   * @param {Number} [options.loginExpirationInDays=90] The number of days from
+   *            when a user logs in until their token expires and they are logged
+   *            out. Defaults to 90. Set to `null` to disable login expiration.
+   * @param {String} options.oauthSecretKey When using the `oauth-encryption`
+   *            package, the 16 byte key using to encrypt sensitive account
+   *            credentials in the database, encoded in base64.
+   *            This option may only be specified on the server.
+   *            See packages/oauth-encryption/README.md for details.
+   * @param {Number} [options.passwordResetTokenExpirationInDays=3] The number
+   *            of days from when a link to reset password is sent until token
+   *            expires and user can't reset password with the link anymore.
+   *            Defaults to 3.
+   * @param {Number} [options.passwordEnrollTokenExpirationInDays=30] The number
+   *            of days from when a link to set initial password is sent until
+   *            token expires and user can't set password with the link
+   *            anymore. Defaults to 30.
+   * @param {Boolean} [options.ambiguousErrorMessages=false] Return ambiguous
+   *            error messages from login failures to prevent user enumeration.
+   *            Defaults to false.
+   * @param {Number} bcryptRounds Allows override of number of bcrypt
+   *            rounds (aka work factor) used to store passwords.
    */
   config(options) {
     // We don't want users to accidentally only call Accounts.config on the
@@ -188,6 +194,8 @@ export class AccountsCommon {
   /**
    * @summary Register a callback to be called after a login attempt succeeds.
    * @locus Anywhere
+   * @name onLogin
+   * @memberof! Accounts
    * @param {Function} func The callback to be called when login is successful.
    *                        The callback receives a single object that
    *                        holds login details. This object contains the login
@@ -203,6 +211,8 @@ export class AccountsCommon {
   /**
    * @summary Register a callback to be called after a login attempt fails.
    * @locus Anywhere
+   * @name onLoginFailure
+   * @memberof! Accounts
    * @param {Function} func The callback to be called after the login has failed.
    */
   onLoginFailure(func) {
@@ -213,6 +223,7 @@ export class AccountsCommon {
    * @summary Register a callback to be called after a logout attempt succeeds.
    * @locus Anywhere
    * @name onLogout
+   * @memberof! Accounts
    * @param {Function} func The callback to be called when logout is successful.
    */
   onLogout(func) {

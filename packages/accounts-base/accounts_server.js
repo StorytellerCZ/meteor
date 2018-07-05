@@ -1038,11 +1038,7 @@ export class AccountsServer extends AccountsCommon {
     // expired tokens.
   };
 
-  /**
-   * @override from accounts_common.js
-   * @param options {Object}
-   * @returns {Object}
-   */
+  // @override from accounts_common.js
   config(options) {
     // Call the overridden implementation of the method.
     const superResult = AccountsCommon.prototype.config.apply(this, arguments);
@@ -1180,11 +1176,11 @@ export class AccountsServer extends AccountsCommon {
 
   /**
    * Updates or creates a user after we authenticate with a 3rd party.
-   * @param serviceName {String} Service name (eg, twitter).
-   * @param serviceData {Object} Data to store in the user's record
+   * @param {String} serviceName Service name (eg, twitter).
+   * @param {Object} serviceData Data to store in the user's record
    *        under services[serviceName]. Must include an "id" field
    *        which is a unique identifier for the user in the service.
-   * @param options {Object, optional} Other options to pass to insertUserDoc
+   * @param {Object} [options] Other options to pass to insertUserDoc
    *        (eg, profile)
    * @returns {Object} Object with token and id keys, like the result
    *        of the "login" method.
@@ -1333,7 +1329,7 @@ const setupDefaultLoginHandlers = accounts => {
 
 /**
  * Login handler for resume tokens.
- * @param accounts {MongoDB Pointer}
+ * @param accounts {Mongo.Collection}
  * @param options {Object}
  * @returns {Object}
  */
