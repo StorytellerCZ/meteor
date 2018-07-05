@@ -1,10 +1,12 @@
 Github = {};
 
-// Request Github credentials for the user
-// @param options {optional}
-// @param credentialRequestCompleteCallback {Function} Callback function to call on
-//   completion. Takes one argument, credentialToken on success, or Error on
-//   error.
+/**
+ * @summary Request Github credentials for the user
+ * @param options {optional}
+ * @param credentialRequestCompleteCallback {Function} Callback function to call on
+ *   completion. Takes one argument, credentialToken on success, or Error on
+ *   error.
+ */
 Github.requestCredential = (options, credentialRequestCompleteCallback) => {
   // support both (options, callback) and (callback).
   if (!credentialRequestCompleteCallback && typeof options === 'function') {

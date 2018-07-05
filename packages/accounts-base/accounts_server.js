@@ -71,9 +71,9 @@ export class AccountsServer extends AccountsCommon {
       resetPassword: token => Meteor.absoluteUrl(`#/reset-password/${token}`),
       verifyEmail: token => Meteor.absoluteUrl(`#/verify-email/${token}`),
       enrollAccount: token => Meteor.absoluteUrl(`#/enroll-account/${token}`),
-    }
+    };
 
-    this.addDefaultRateLimit()
+    this.addDefaultRateLimit();
   }
 
   ///
@@ -413,19 +413,19 @@ export class AccountsServer extends AccountsCommon {
   /// LOGIN HANDLERS
   ///
 
-  // The main entry point for auth packages to hook in to login.
-  //
-  // A login handler is a login method which can return `undefined` to
-  // indicate that the login request is not handled by this handler.
-  //
-  // @param name {String} Optional.  The service name, used by default
-  // if a specific service name isn't returned in the result.
-  //
-  // @param handler {Function} A function that receives an options object
-  // (as passed as an argument to the `login` method) and returns one of:
-  // - `undefined`, meaning don't handle;
-  // - a login method result object
-
+  /**
+   * The main entry point for auth packages to hook in to login.
+   *
+   * A login handler is a login method which can return `undefined` to
+   * indicate that the login request is not handled by this handler.
+   * @param name {String} Optional. The service name.
+   * Used by default if a specific service name isn't returned in the result.
+   * @param handler {Function} A function that receives an options object
+   * (as passed as an argument to the `login` method) and returns one of:
+   * - `undefined`, meaning don't handle;
+   * - a login method result object
+   * @returns {undefined|Object}
+   */
   registerLoginHandler(name, handler) {
     if (! handler) {
       handler = name;
@@ -475,14 +475,17 @@ export class AccountsServer extends AccountsCommon {
     };
   };
 
-  // Deletes the given loginToken from the database.
-  //
-  // For new-style hashed token, this will cause all connections
-  // associated with the token to be closed.
-  //
-  // Any connections associated with old-style unhashed tokens will be
-  // in the process of becoming associated with hashed tokens and then
-  // they'll get closed.
+  /**
+   * Deletes the given loginToken from the database.
+   * For new-style hashed token, this will cause all connections
+   * associated with the token to be closed.
+   *
+   * Any connections associated with old-style unhashed tokens will be
+   * in the process of becoming associated with hashed tokens and then
+   * they'll get closed.
+   * @param userId {String}
+   * @param loginToken {String}
+   */
   destroyToken(userId, loginToken) {
     this.users.update(userId, {
       $pull: {
@@ -733,13 +736,14 @@ export class AccountsServer extends AccountsCommon {
     });
   };
 
-  // Add to the list of fields or subfields to be automatically
-  // published if autopublish is on. Must be called from top-level
-  // code (ie, before Meteor.startup hooks run).
-  //
-  // @param opts {Object} with:
-  //   - forLoggedInUser {Array} Array of fields published to the logged-in user
-  //   - forOtherUsers {Array} Array of fields published to users that aren't logged in
+  /**
+   * Add to the list of fields or subfields to be automatically
+   * published if autopublish is on. Must be called from top-level
+   * code (ie, before Meteor.startup hooks run).
+   * @param opts {Object} with:
+   *    - forLoggedInUser {Array} Array of fields published to the logged-in user
+   *   - forOtherUsers {Array} Array of fields published to users that aren't logged in
+   */
   addAutopublishFields(opts) {
     this._autopublishFields.loggedInUser.push.apply(
       this._autopublishFields.loggedInUser, opts.forLoggedInUser);
@@ -1034,7 +1038,11 @@ export class AccountsServer extends AccountsCommon {
     // expired tokens.
   };
 
-  // @override from accounts_common.js
+  /**
+   * @override from accounts_common.js
+   * @param options {Object}
+   * @returns {Object}
+   */
   config(options) {
     // Call the overridden implementation of the method.
     const superResult = AccountsCommon.prototype.config.apply(this, arguments);
@@ -1051,7 +1059,12 @@ export class AccountsServer extends AccountsCommon {
     return superResult;
   };
 
-  // Called by accounts-password
+  /**
+   * Called by accounts-password
+   * @param options
+   * @param user
+   * @returns {any}
+   */
   insertUserDoc(options, user) {
     // - clone user document, to protect from modification
     // - add createdAt timestamp
@@ -1165,17 +1178,17 @@ export class AccountsServer extends AccountsCommon {
   /// MANAGING USER OBJECTS
   ///
 
-  // Updates or creates a user after we authenticate with a 3rd party.
-  //
-  // @param serviceName {String} Service name (eg, twitter).
-  // @param serviceData {Object} Data to store in the user's record
-  //        under services[serviceName]. Must include an "id" field
-  //        which is a unique identifier for the user in the service.
-  // @param options {Object, optional} Other options to pass to insertUserDoc
-  //        (eg, profile)
-  // @returns {Object} Object with token and id keys, like the result
-  //        of the "login" method.
-  //
+  /**
+   * Updates or creates a user after we authenticate with a 3rd party.
+   * @param serviceName {String} Service name (eg, twitter).
+   * @param serviceData {Object} Data to store in the user's record
+   *        under services[serviceName]. Must include an "id" field
+   *        which is a unique identifier for the user in the service.
+   * @param options {Object, optional} Other options to pass to insertUserDoc
+   *        (eg, profile)
+   * @returns {Object} Object with token and id keys, like the result
+   *        of the "login" method.
+   */
   updateOrCreateUserFromExternalService(
     serviceName,
     serviceData,
@@ -1255,15 +1268,20 @@ export class AccountsServer extends AccountsCommon {
     }
   };
 
-  // Removes default rate limiting rule
+  /**
+   * Removes default rate limiting rule
+   * @returns {DDPRateLimiter}
+   */
   removeDefaultRateLimit() {
     const resp = DDPRateLimiter.removeRule(this.defaultRateLimiterRuleId);
     this.defaultRateLimiterRuleId = null;
     return resp;
   };
 
-  // Add a default rule of limiting logins, creating new users and password reset
-  // to 5 times every 10 seconds per connection.
+  /**
+   * Add a default rule of limiting logins, creating new users and password reset
+   * to 5 times every 10 seconds per connection.
+   */
   addDefaultRateLimit() {
     if (!this.defaultRateLimiterRuleId) {
       this.defaultRateLimiterRuleId = DDPRateLimiter.addRule({
@@ -1279,9 +1297,13 @@ export class AccountsServer extends AccountsCommon {
 
 }
 
-// Give each login hook callback a fresh cloned copy of the attempt
-// object, but don't clone the connection.
-//
+/**
+ * Give each login hook callback a fresh cloned copy of the attempt
+ * object, but don't clone the connection.
+ * @param connection
+ * @param attempt
+ * @returns {EJSON}
+ */
 const cloneAttemptWithConnection = (connection, attempt) => {
   const clonedAttempt = EJSON.clone(attempt);
   clonedAttempt.connection = connection;
@@ -1309,7 +1331,12 @@ const setupDefaultLoginHandlers = accounts => {
   });
 };
 
-// Login handler for resume tokens.
+/**
+ * Login handler for resume tokens.
+ * @param accounts {MongoDB Pointer}
+ * @param options {Object}
+ * @returns {Object}
+ */
 const defaultResumeLoginHandler = (accounts, options) => {
   if (!options.resume)
     return undefined;
@@ -1503,7 +1530,11 @@ const defaultCreateUserHook = (options, user) => {
   return user;
 };
 
-// Validate new user's email or Google/Facebook/GitHub account's email
+/**
+ * Validate new user's email or Google/Facebook/GitHub account's email
+ * @param user {Object} User object
+ * @returns {boolean}
+ */
 function defaultValidateNewUserHook(user) {
   const domain = this._options.restrictCreationByEmailDomain;
   if (!domain) {

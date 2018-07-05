@@ -37,7 +37,10 @@ export class AccountsClient extends AccountsCommon {
   /// CURRENT USER
   ///
 
-  // @override
+  /**
+   * @override
+   * @returns {Object}
+   */
   userId() {
     return this.connection.userId();
   }
@@ -52,6 +55,9 @@ export class AccountsClient extends AccountsCommon {
   /**
    * @summary True if a login method (such as `Meteor.loginWithPassword`, `Meteor.loginWithFacebook`, or `Accounts.createUser`) is currently in progress. A reactive data source.
    * @locus Client
+   * @memberof! Accounts
+   * @name loggingIn
+   * @returns {Boolean}
    */
   loggingIn() {
     return this._loggingIn.get();
@@ -60,15 +66,21 @@ export class AccountsClient extends AccountsCommon {
   /**
    * @summary True if a logout method (such as `Meteor.logout`) is currently in progress. A reactive data source.
    * @locus Client
+   * @memberof! Accounts
+   * @name loggingOut
+   * @returns {Boolean}
    */
   loggingOut() {
     return this._loggingOut.get();
   }
 
   /**
-   * @summary Register a new login function on the client. Intended for OAuth package authors. You can call the login function by using
-   `Accounts.callLoginFunction` or `Accounts.callLoginFunction`.
+   * @summary Register a new login function on the client. Intended for
+   *          OAuth package authors. You can call the login function by using
+   *          `Accounts.callLoginFunction` or `Accounts.callLoginFunction`.
    * @locus Client
+   * @name registerClientLoginFunction
+   * @memberof! Accounts
    * @param {String} funcName The name of your login function. Used by `Accounts.callLoginFunction` and `Accounts.applyLoginFunction`.
    Should be the OAuth provider name accordingly.
    * @param {Function} func The actual function you want to call. Just write it in the manner of `loginWithFoo`.
@@ -81,10 +93,13 @@ export class AccountsClient extends AccountsCommon {
   }
 
   /**
-   * @summary Call a login function defined using `Accounts.registerClientLoginFunction`. Excluding the first argument, all remaining
-   arguments are passed to the login function accordingly. Use `applyLoginFunction` if you want to pass in an arguments array that contains
-   all arguments for the login function.
+   * @summary Call a login function defined using `Accounts.registerClientLoginFunction`.
+   *          Excluding the first argument, all remaining arguments are passed to the
+   *          login function accordingly. Use `applyLoginFunction` if you want to pass
+   *          in an arguments array that contains all arguments for the login function.
+   * @name callLoginFunction
    * @locus Client
+   * @memberof! Accounts
    * @param {String} funcName The name of the login function you wanted to call.
    */
   callLoginFunction(funcName, ...funcArgs) {
@@ -97,6 +112,8 @@ export class AccountsClient extends AccountsCommon {
   /**
    * @summary Same as ``callLoginFunction` but accept an `arguments` which contains all arguments for the login
    function.
+   * @name applyLoginFunction
+   * @memberof! Accounts
    * @locus Client
    * @param {String} funcName The name of the login function you wanted to call.
    * @param {Array} funcArgs The `arguments` for the login function.
@@ -110,6 +127,8 @@ export class AccountsClient extends AccountsCommon {
 
   /**
    * @summary Log the user out.
+   * @name logout
+   * @memberof! Accounts
    * @locus Client
    * @param {Function} [callback] Optional callback. Called with no arguments on success, or with a single `Error` argument on failure.
    */
@@ -129,9 +148,14 @@ export class AccountsClient extends AccountsCommon {
   }
 
   /**
-   * @summary Log out other clients logged in as the current user, but does not log out the client that calls this function.
+   * @summary Log out other clients logged in as the current user,
+   *      but does not log out the client that calls this function.
+   * @name logoutOtherClients
+   * @memberof! Accounts
    * @locus Client
-   * @param {Function} [callback] Optional callback. Called with no arguments on success, or with a single `Error` argument on failure.
+   * @param {Function} [callback] Optional callback.
+   *        Called with no arguments on success, or with a single `Error`
+   *        argument on failure.
    */
   logoutOtherClients(callback) {
     // We need to make two method calls: one to replace our current token,
@@ -177,32 +201,36 @@ export class AccountsClient extends AccountsCommon {
   /// LOGIN METHODS
   ///
 
-  // Call a login method on the server.
-  //
-  // A login method is a method which on success calls `this.setUserId(id)` and
-  // `Accounts._setLoginToken` on the server and returns an object with fields
-  // 'id' (containing the user id), 'token' (containing a resume token), and
-  // optionally `tokenExpires`.
-  //
-  // This function takes care of:
-  //   - Updating the Meteor.loggingIn() reactive data source
-  //   - Calling the method in 'wait' mode
-  //   - On success, saving the resume token to localStorage
-  //   - On success, calling Accounts.connection.setUserId()
-  //   - Setting up an onReconnect handler which logs in with
-  //     the resume token
-  //
-  // Options:
-  // - methodName: The method to call (default 'login')
-  // - methodArguments: The arguments for the method
-  // - validateResult: If provided, will be called with the result of the
-  //                 method. If it throws, the client will not be logged in (and
-  //                 its error will be passed to the callback).
-  // - userCallback: Will be called with no arguments once the user is fully
-  //                 logged in, or with the error on error.
-  //
+  /**
+   * @summary Call a login method on the server.
+   *
+   * A login method is a method which on success calls `this.setUserId(id)` and
+   * `Accounts._setLoginToken` on the server and returns an object with fields
+   * 'id' (containing the user id), 'token' (containing a resume token), and
+   * optionally `tokenExpires`.
+   *
+   * This function takes care of:
+   *   - Updating the Meteor.loggingIn() reactive data source
+   *   - Calling the method in 'wait' mode
+   *   - On success, saving the resume token to localStorage
+   *   - On success, calling Accounts.connection.setUserId()
+   *   - Setting up an onReconnect handler which logs in with
+   *     the resume token
+   * @memberof! Accounts
+   * @name callLoginMethod
+   * @param {Object} options
+   * @param {String} options.methodName The method to call (default 'login')
+   * @param {Object} options.methodArguments The arguments for the method
+   * @param {Function} options.validateResult If provided, will be called with the
+   *                  result of the method. If it throws, the client will not
+   *                  be logged in (and its error will be passed to the callback).
+   * @param {Function} options.userCallback Will be called with no arguments
+   *                  once the user is fully logged in, or with the error on error.
+   * @locus Client
+   *
+   */
   callLoginMethod(options) {
-    options = { 
+    options = {
       methodName: 'login',
       methodArguments: [{}],
       _suppressLoggingIn: false,
@@ -368,6 +396,12 @@ export class AccountsClient extends AccountsCommon {
       loggedInAndDataReadyCallback);
   }
 
+  /**
+   * @summary Logs out the current user.
+   * @memberof! Accounts
+   * @name makeClientLoggedOut
+   * @locus Client
+   */
   makeClientLoggedOut() {
     // Ensure client was successfully logged in before running logout hooks.
     if (this.connection._userId) {
@@ -380,7 +414,16 @@ export class AccountsClient extends AccountsCommon {
     this.connection.setUserId(null);
     this._reconnectStopper && this._reconnectStopper.stop();
   }
-  
+
+  /**
+   * @summary Logs in the user with the given token.
+   * @memberof! Accounts
+   * @name makeClientLoggedIn
+   * @param {String} userId
+   * @param {String} token
+   * @param {Date} tokenExpires
+   * @locus Client
+   */
   makeClientLoggedIn(userId, token, tokenExpires) {
     this._storeLoginToken(userId, token, tokenExpires);
     this.connection.setUserId(userId);
@@ -390,10 +433,15 @@ export class AccountsClient extends AccountsCommon {
   /// LOGIN SERVICES
   ///
 
-  // A reactive function returning whether the loginServiceConfiguration
-  // subscription is ready. Used by accounts-ui to hide the login button
-  // until we have all the configuration loaded
-  //
+  /**
+   * @summary A reactive function returning whether the loginServiceConfiguration
+   * subscription is ready. Used by accounts-ui to hide the login button
+   * until we have all the configuration loaded
+   * @memberof! Accounts
+   * @name loginServicesConfigured
+   * @returns {Boolean}
+   * @locus Client
+   */
   loginServicesConfigured() {
     return this._loginServicesHandle.ready();
   };
@@ -407,11 +455,16 @@ export class AccountsClient extends AccountsCommon {
   // initiated in a previous VM, and we now have the result of the login
   // attempt in a new VM.
 
-  // Register a callback to be called if we have information about a
-  // login attempt at page load time.  Call the callback immediately if
-  // we already have the page load login attempt info, otherwise stash
-  // the callback to be called if and when we do get the attempt info.
-  //
+  /**
+   * @summary Register a callback to be called if we have information about a
+   * login attempt at page load time.  Call the callback immediately if
+   * we already have the page load login attempt info, otherwise stash
+   * the callback to be called if and when we do get the attempt info.
+   * @name onPageLoadLogin
+   * @memberof! Accounts
+   * @param f {Function}
+   * @locus Client
+   */
   onPageLoadLogin(f) {
     if (this._pageLoadLoginAttemptInfo) {
       f(this._pageLoadLoginAttemptInfo);
@@ -446,6 +499,14 @@ export class AccountsClient extends AccountsCommon {
   // seconds to synchronize login state between multiple tabs in the same
   // browser.
 
+  /**
+   * @summary Login the user associated with the provided token.
+   * @memberof! Accounts
+   * @name loginWithToken
+   * @param token {String}
+   * @param callback {Function}
+   * @locus Client
+   */
   loginWithToken(token, callback) {
     this.callLoginMethod({
       methodArguments: [{
@@ -620,14 +681,14 @@ export class AccountsClient extends AccountsCommon {
   _initUrlMatching() {
     // By default, allow the autologin process to happen.
     this._autoLoginEnabled = true;
-  
+
     // We only support one callback per URL.
     this._accountsCallbacks = {};
-  
+
     // Try to match the saved value of window.location.hash.
     this._attemptToMatchHash();
   };
-  
+
   // Separate out this functionality for testing
   _attemptToMatchHash() {
     attemptToMatchHash(this, this.savedHash, defaultSuccessHandler);
@@ -716,8 +777,8 @@ export class AccountsClient extends AccountsCommon {
 };
 
 /**
- * @summary True if a login method (such as `Meteor.loginWithPassword`, 
- * `Meteor.loginWithFacebook`, or `Accounts.createUser`) is currently in 
+ * @summary True if a login method (such as `Meteor.loginWithPassword`,
+ * `Meteor.loginWithFacebook`, or `Accounts.createUser`) is currently in
  * progress. A reactive data source.
  * @locus Client
  * @importFromPackage meteor
@@ -725,7 +786,7 @@ export class AccountsClient extends AccountsCommon {
 Meteor.loggingIn = () => Accounts.loggingIn();
 
 /**
- * @summary True if a logout method (such as `Meteor.logout`) is currently in 
+ * @summary True if a logout method (such as `Meteor.logout`) is currently in
  * progress. A reactive data source.
  * @locus Client
  * @importFromPackage meteor
@@ -751,7 +812,7 @@ Meteor.logoutOtherClients = callback => Accounts.logoutOtherClients(callback);
 /**
  * @summary Login with a Meteor access token.
  * @locus Client
- * @param {Object} [token] Local storage token for use with login across 
+ * @param {Object} [token] Local storage token for use with login across
  * multiple tabs in the same browser.
  * @param {Function} [callback] Optional callback. Called with no arguments on
  * success.
@@ -800,7 +861,7 @@ if (Package.blaze) {
    * @summary Calls [Meteor.loggingIn()](#meteor_loggingin) or [Meteor.loggingOut()](#meteor_loggingout).
    */
   Template.registerHelper(
-    'loggingInOrOut', 
+    'loggingInOrOut',
     () => Meteor.loggingIn() || Meteor.loggingOut()
   );
 }
@@ -816,7 +877,7 @@ const defaultSuccessHandler = function(token, urlPart) {
       this._accountsCallbacks[urlPart](token, () => this._enableAutoLogin());
     }
   });
-}
+};
 
 // Note that both arguments are optional and are currently only passed by
 // accounts_url_tests.js.
@@ -853,10 +914,10 @@ const attemptToMatchHash = (accounts, hash, success) => {
     // Do some stuff with the token we matched
     success.call(accounts, token, urlPart);
   });
-}
+};
 
 // Export for testing
 export const AccountsTest = {
-  attemptToMatchHash: (hash, success) => 
+  attemptToMatchHash: (hash, success) =>
     attemptToMatchHash(Accounts, hash, success),
 };

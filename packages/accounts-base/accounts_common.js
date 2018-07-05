@@ -80,6 +80,7 @@ export class AccountsCommon {
   /**
    * @summary Get the current user record, or `null` if no user is logged in. A reactive data source.
    * @locus Anywhere
+   * @returns {Object}
    */
   user() {
     const userId = this.userId();
@@ -211,6 +212,7 @@ export class AccountsCommon {
   /**
    * @summary Register a callback to be called after a logout attempt succeeds.
    * @locus Anywhere
+   * @name onLogout
    * @param {Function} func The callback to be called when logout is successful.
    */
   onLogout(func) {

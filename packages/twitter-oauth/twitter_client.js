@@ -1,8 +1,10 @@
-// Request Twitter credentials for the user
-// @param options {optional}  XXX support options.requestPermissions
-// @param credentialRequestCompleteCallback {Function} Callback function to call on
-//   completion. Takes one argument, credentialToken on success, or Error on
-//   error.
+/**
+ * @summary Request Twitter credentials for the user
+ * @param options {optional}  XXX support options.requestPermissions
+ * @param credentialRequestCompleteCallback {Function} Callback function to call on
+ *   completion. Takes one argument, credentialToken on success, or Error on
+ *   error.
+ */
 Twitter.requestCredential = function (options, credentialRequestCompleteCallback) {
   // support both (options, callback) and (callback).
   if (!credentialRequestCompleteCallback && typeof options === 'function') {

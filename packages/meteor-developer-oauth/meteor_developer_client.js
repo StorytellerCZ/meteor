@@ -1,7 +1,10 @@
-// Request Meteor developer account credentials for the user
-// @param credentialRequestCompleteCallback {Function} Callback function to call on
-//   completion. Takes one argument, credentialToken on success, or Error on
-//   error.
+/**
+ * @summary Request Meteor developer account credentials for the user
+ * @param options {optional}
+ * @param credentialRequestCompleteCallback {Function} Callback function to call on
+ *   completion. Takes one argument, credentialToken on success, or Error on
+ *   error.
+ */
 const requestCredential = (options, credentialRequestCompleteCallback) => {
   // support a callback without options
   if (! credentialRequestCompleteCallback && typeof options === "function") {

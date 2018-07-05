@@ -1,11 +1,13 @@
 Facebook = {};
 
-// Request Facebook credentials for the user
-//
-// @param options {optional}
-// @param credentialRequestCompleteCallback {Function} Callback function to call on
-//   completion. Takes one argument, credentialToken on success, or Error on
-//   error.
+/**
+ * @summary Request Facebook credentials for the user
+ *
+ * @param options {optional}
+ * @param credentialRequestCompleteCallback {Function} Callback function to call on
+ *   completion. Takes one argument, credentialToken on success, or Error on
+ *   error.
+ */
 Facebook.requestCredential = (options, credentialRequestCompleteCallback) => {
   // support both (options, callback) and (callback).
   if (!credentialRequestCompleteCallback && typeof options === 'function') {
