@@ -49,7 +49,7 @@ function load(name, runImage) {
       Package._define(name, exports);
     }
 
-    var pendingCallbacks = pending[name];
+    var pendingCallbacks = pending[name] || [];
     delete pending[name];
     pendingCallbacks.forEach(function (callback) {
       callback();
@@ -83,9 +83,7 @@ function runEagerModules(config, callback) {
 
     var path = config.eagerModulePaths[index];
     var exports = config.require(path);
-    // TODO[fibers]: retest the function checkAsyncModule. It looks like it's returning the wrong values
-      //  returning false when exports is a promise
-    if (exports && exports.then) {
+    if (checkAsyncModule(exports)) {
       if (path === config.mainModulePath) {
         mainModuleAsync = true;
       }
@@ -96,6 +94,24 @@ function runEagerModules(config, callback) {
           mainExports = exports;
         }
         evaluateNextModule();
+      })
+      // This also handles errors in modules and packages loaded sync
+      // afterwards since they are run within the .then.
+      .catch(function (error) {
+        if (
+          typeof process === 'object' &&
+          typeof process.nextTick === 'function'
+        ) {
+          // Is node.js
+          process.nextTick(function () {
+            throw error;
+          });
+        } else {
+          // TODO: is there a faster way to throw the error?
+          setTimeout(function () {
+            throw error;
+          }, 0);
+        }
       });
     } else {
       if (path === config.mainModulePath) {
@@ -109,16 +125,14 @@ function runEagerModules(config, callback) {
 }
 
 function checkAsyncModule (exports) {
-  // Uses descriptor to avoid running any getters
-  var isPromise = exports && hasOwn.call(exports, 'then') &&
-    typeof Object.getOwnPropertyDescriptor(exports, 'then').value === 'function';
+  var potentiallyAsync = exports && typeof exports === 'object' &&
+    hasOwn.call(exports, '__reifyAsyncModule');
 
-  if (!isPromise) {
-    return false;
+  if (!potentiallyAsync) {
+    return;
   }
 
-  return hasOwn.call(exports, '__reifyAsyncModule') &&
-     Object.getOwnPropertyDescriptor(exports, '__reifyAsyncModule');
+  return typeof exports.then === 'function';
 }
 
 // For this to be accurate, all linked files must be queued before calling this

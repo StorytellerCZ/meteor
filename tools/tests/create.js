@@ -37,14 +37,15 @@ selftest.define("create main", async function () {
   await run.match("proxy.");
   // Do not print out the changes to the versions file!
   run.waitSecs(5);
-  run.read("=> Started MongoDB", false);
+  await run.read("=> Started MongoDB", false);
+  run.waitSecs(30);
   await run.match("your app");
   await run.match("running at");
   await run.match("localhost");
   await run.stop();
 
   run = s.run("create", "--list");
-  run.read('Available');
+  await run.read('Available');
   await run.match('leaderboard');
   await run.expectExit(0);
 });
@@ -56,16 +57,16 @@ AVAILABLE_SKELETONS.forEach(template => {
 
     // Can we create an app? Yes!
     let run = s.run("create", "--" + template, template);
-    run.waitSecs(60);
+    run.waitSecs(40);
     await run.match("Created a new Meteor app in '" + template + "'.");
     await run.match("To run your new app");
 
     s.cd(template);
     run = s.run();
-    run.waitSecs(60);
+    run.waitSecs(40);
     await run.match(template);
     await run.match("proxy")
-    run.waitSecs(60);
+    run.waitSecs(40);
     await run.match("your app");
     run.waitSecs(5);
     await run.match("running at");

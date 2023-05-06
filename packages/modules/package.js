@@ -6,7 +6,7 @@ Package.describe({
 });
 
 Npm.depends({
-  "@meteorjs/reify": "git+https://github.com/meteor/reify.git#d01c7b2470e7e1cddec8aa3110b39a1108008f2d",
+  "@meteorjs/reify": "git+https://github.com/meteor/reify.git#cf61c57c6c4fefcbf164bf63d3c12fda1924b3d2",
   "meteor-babel-helpers": "0.0.3",
 });
 

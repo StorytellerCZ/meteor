@@ -6,7 +6,24 @@ import {
 } from "meteor/minimongo/constants";
 
 import { normalizeProjection } from "./mongo_utils";
-
+export function warnUsingOldApi (
+    methodName,
+    collectionName,
+    isCalledFromAsync
+   ){
+  if (
+    process.env.WARN_WHEN_USING_OLD_API && // also ensures it is on the server
+    !isCalledFromAsync // must be true otherwise we should log
+  ) {
+   if (collectionName === undefined || collectionName.includes('oplog')) return
+   console.warn(`
+   
+   Calling method ${collectionName}.${methodName} from old API on server.
+   This method will be removed, from the server, in version 3.
+   Trace is below:`)
+   console.trace()
+ };
+}
 /**
  * @summary Namespace for MongoDB-related items
  * @namespace
@@ -442,7 +459,6 @@ Object.assign(Mongo.Collection.prototype, {
    * @method estimatedDocumentCount
    * @memberof Mongo.Collection
    * @instance
-   * @param {MongoSelector} [selector] A query describing the documents to count
    * @param {Object} [options] All options are listed in [MongoDB documentation](https://mongodb.github.io/node-mongodb-native/4.11/interfaces/EstimatedDocumentCountOptions.html). Please note that not all of them are available on the client.
    * @returns {Promise<number>}
    */
@@ -556,6 +572,15 @@ Object.assign(Mongo.Collection.prototype, {
    * @returns {Object}
    */
   findOne(...args) {
+    // [FIBERS]
+    // TODO: Remove this when 3.0 is released.
+    warnUsingOldApi(
+      "findOne",
+      this._name,
+      this.findOne.isCalledFromAsync
+    );
+    this.findOne.isCalledFromAsync = false;
+
     return this._collection.findOne(
       this._getFindSelector(args),
       this._getFindOptions(args)
@@ -654,6 +679,15 @@ Object.assign(Mongo.Collection.prototype, {
     if (!doc) {
       throw new Error('insert requires an argument');
     }
+
+    // [FIBERS]
+    // TODO: Remove this when 3.0 is released.
+    warnUsingOldApi(
+      "insert",
+      this._name,
+      this.insert.isCalledFromAsync
+    );
+    this.insert.isCalledFromAsync = false;
 
     // Make a shallow clone of the document, preserving its prototype.
     doc = Object.create(
@@ -937,6 +971,15 @@ Object.assign(Mongo.Collection.prototype, {
       }
     }
 
+    // [FIBERS]
+    // TODO: Remove this when 3.0 is released.
+    warnUsingOldApi(
+      "update",
+      this._name,
+      this.update.isCalledFromAsync
+    );
+    this.update.isCalledFromAsync = false;
+
     selector = Mongo.Collection._rewriteSelector(selector, {
       fallbackId: insertedId,
     });
@@ -1009,6 +1052,14 @@ Object.assign(Mongo.Collection.prototype, {
       return this._callMutatorMethod('remove', [selector]);
     }
 
+    // [FIBERS]
+    // TODO: Remove this when 3.0 is released.
+    warnUsingOldApi(
+      "remove",
+      this._name,
+      this.remove.isCalledFromAsync
+    );
+    this.remove.isCalledFromAsync = false;
     // it's my collection.  descend into the collection1 object
     // and propagate any exception.
     return this._collection.remove(selector);
@@ -1111,6 +1162,14 @@ Object.assign(Mongo.Collection.prototype, {
     var self = this;
     if (!self._collection.createIndexAsync)
       throw new Error('Can only call createIndexAsync on server collections');
+    // [FIBERS]
+    // TODO: Remove this when 3.0 is released.
+    warnUsingOldApi(
+      "createIndex",
+      self._name,
+      self.createIndex.isCalledFromAsync
+    );
+    self.createIndex.isCalledFromAsync = false;
     try {
       await self._collection.createIndexAsync(index, options);
     } catch (e) {
@@ -1125,6 +1184,22 @@ Object.assign(Mongo.Collection.prototype, {
         throw new Meteor.Error(`An error occurred when creating an index for collection "${ self._name }: ${ e.message }`);
       }
     }
+  },
+
+  /**
+   * @summary Asynchronously creates the specified index on the collection.
+   * @locus server
+   * @method createIndex
+   * @memberof Mongo.Collection
+   * @instance
+   * @param {Object} index A document that contains the field and value pairs where the field is the index key and the value describes the type of index for that field. For an ascending index on a field, specify a value of `1`; for descending index, specify a value of `-1`. Use `text` for text indexes.
+   * @param {Object} [options] All options are listed in [MongoDB documentation](https://docs.mongodb.com/manual/reference/method/db.collection.createIndex/#options)
+   * @param {String} options.name Name of the index
+   * @param {Boolean} options.unique Define that the index values must be unique, more at [MongoDB documentation](https://docs.mongodb.com/manual/core/index-unique/)
+   * @param {Boolean} options.sparse Define that the index is sparse, more at [MongoDB documentation](https://docs.mongodb.com/manual/core/index-sparse/)
+   */
+  createIndex(index, options){
+    return this.createIndexAsync(index, options);
   },
 
   async dropIndexAsync(index) {
@@ -1239,3 +1314,19 @@ function popCallbackFromArgs(args) {
     return args.pop();
   }
 }
+
+
+// XXX: IN Meteor 3.x this code was not working....
+// It throws an error when trying to call a method on the collection.
+// the error normally is:
+// TypeError: this[methodName] is not a function
+// ASYNC_COLLECTION_METHODS.forEach(methodName => {
+//   const methodNameAsync = getAsyncMethodName(methodName);
+//   Mongo.Collection.prototype[methodNameAsync] = function(...args) {
+//     try {
+//       return Promise.resolve(this[methodName](...args));
+//     } catch (error) {
+//       return Promise.reject(error);
+//     }
+//   };
+// });

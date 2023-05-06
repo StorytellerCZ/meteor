@@ -976,7 +976,7 @@ export default class ImportScanner {
   private async findImportedModuleIdentifiers(
     file: File,
   ): Promise<Record<string, ImportInfo>> {
-    const fileHash = await file.hash;
+    const fileHash = file.hash;
     if (IMPORT_SCANNER_CACHE.has(fileHash)) {
       return IMPORT_SCANNER_CACHE.get(fileHash);
     }
@@ -1241,7 +1241,7 @@ export default class ImportScanner {
     return info;
   }
 
-  private async readModule(absPath: string): RawFile | null {
+  private async readModule(absPath: string): Promise<RawFile | null> {
     const dotExt = pathExtname(absPath).toLowerCase();
 
     if (dotExt === ".node") {

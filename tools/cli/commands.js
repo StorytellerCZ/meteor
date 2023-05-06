@@ -423,7 +423,7 @@ async function doRunCommand(options) {
     async function prepareCordovaProject() {
       import { CordovaProject } from '../cordova/project.js';
 
-      await main.captureAndExit('', 'preparing Cordova project', () => {
+      await main.captureAndExit('', 'preparing Cordova project', async () => {
         // TODO -> Have to change CordovaProject constructor here.
         const cordovaProject = new CordovaProject(projectContext, {
           settingsFile: options.settings,
@@ -431,10 +431,11 @@ async function doRunCommand(options) {
           cordovaServerPort: parsedCordovaServerPort,
           buildMode
         });
+        await cordovaProject.init();
         if (buildmessage.jobHasMessages()) return;
 
         cordovaRunner = new CordovaRunner(cordovaProject, runTargets);
-        cordovaRunner.checkPlatformsForRunTargets();
+        await cordovaRunner.checkPlatformsForRunTargets();
       });
     }
 
@@ -987,10 +988,10 @@ var buildCommands = {
 main.registerCommand({
   name: "build",
   ...buildCommands,
-}, function (options) {
-  return Profile.run(
+}, async function (options) {
+  return await Profile.run(
     "meteor build",
-    () => buildCommand(options)
+    async () =>  await buildCommand(options)
   );
 });
 
@@ -1002,7 +1003,7 @@ main.registerCommand({
   name: "bundle",
   hidden: true,
   ...buildCommands,
-}, function (options) {
+}, async function (options) {
   Console.error(
     "This command has been deprecated in favor of " +
     Console.command("'meteor build'") + ", which allows you to " +
@@ -1011,9 +1012,9 @@ main.registerCommand({
     "for more information.");
   Console.error();
 
-  return Profile.run(
+  return await Profile.run(
     "meteor bundle",
-    () => buildCommand({
+    async () => await buildCommand({
       ...options,
       _bundleOnly: true,
     })
@@ -1213,19 +1214,20 @@ ${Console.command("meteor build ../output")}`,
 
       await ensureDevBundleDependencies();
 
-      await buildmessage.enterJob({ title: "preparing Cordova project" }, () => {
+      await buildmessage.enterJob({ title: "preparing Cordova project" }, async() => {
         import { CordovaProject } from '../cordova/project.js';
 
         cordovaProject = new CordovaProject(projectContext, {
           settingsFile: options.settings,
           mobileServerUrl: utils.formatUrl(parsedMobileServerUrl),
           cordovaServerPort: parsedCordovaServerPort });
+        await cordovaProject.init();
         if (buildmessage.jobHasMessages()) return;
 
         const pluginVersions = pluginVersionsFromStarManifest(
           bundleResult.starManifest);
 
-        cordovaProject.prepareFromAppBundle(bundlePath, pluginVersions);
+        await cordovaProject.prepareFromAppBundle(bundlePath, pluginVersions);
       });
 
       for (platform of cordovaPlatforms) {
@@ -1244,9 +1246,9 @@ ${displayNameForPlatform(platform)}` }, async () => {
             // is utilized in the Cordova builder to write boilerplate HTML and
             // various config.xml settings (e.g. access policies)
             if (platform === 'ios') {
-              cordovaProject.prepareForPlatform(platform, buildOptions);
+              await cordovaProject.prepareForPlatform(platform, buildOptions);
             } else if (platform === 'android') {
-              cordovaProject.buildForPlatform(platform, {...buildOptions, argv: ["--packageType", options.packageType || "bundle"]});
+              await cordovaProject.buildForPlatform(platform, {...buildOptions, argv: ["--packageType", options.packageType || "bundle"]});
             }
 
             // Once prepared, copy the bundle to the final location.
@@ -1392,7 +1394,8 @@ main.registerCommand({
   name: 'mongo',
   maxArgs: 1,
   options: {
-    url: { type: Boolean, short: 'U' }
+    url: { type: Boolean, short: 'U' },
+    verbose: { type: Boolean, short: 'V' },
   },
   requiresApp: function (options) {
     return options.args.length === 0;
@@ -1436,20 +1439,45 @@ to this command.`);
     mongoUrl = await deploy.temporaryMongoUrl(site);
     usedMeteorAccount = true;
 
-    if (! mongoUrl) {
+    if (!mongoUrl) {
       // temporaryMongoUrl() will have printed an error message
       return 1;
     }
   }
   if (options.url) {
-    console.log(mongoUrl);
+    console.log(`${yellow`$`} ${ purple`mongosh` } ${ blue(mongoUrl) }`);
   } else {
     if (usedMeteorAccount) {
       await auth.maybePrintRegistrationLink();
     }
     process.stdin.pause();
     var runMongo = require('../runners/run-mongo.js');
-    await runMongo.runMongoShell(mongoUrl);
+    await runMongo.runMongoShell(mongoUrl,
+      (err) => {
+        console.log(red`Some error occured while trying to run mongosh.`);
+        console.log(yellow`Check bellow for some more info:`);
+        console.log(`
+     Since version v5.0.5 the mongo shell has been superseded by the mongosh
+     below there is the url to use with mongosh
+     ${yellow`$`} ${ purple`mongosh` } ${ blue(mongoUrl) }
+     `)
+
+        if (err.code === 'ENOENT') {
+          console.log(red`The 'mongosh' command line tool was not found in your PATH.`);
+          console.log(`Check https://www.mongodb.com/docs/mongodb-shell/`);
+          process.exit(2);
+          return;
+        }
+
+        if (options.verbose) {
+          console.log("here is a more verbose error message:");
+          console.log(yellow`=====================================`);
+          console.log(err);
+          console.log(yellow`=====================================`);
+        }
+
+        process.exit(1);
+      });
     throw new main.WaitForExit();
   }
 });
@@ -2015,9 +2043,9 @@ async function doTestCommand(options) {
     projectContext = new projectContextModule.ProjectContext(projectContextOptions);
     await projectContext.init();
 
-    await main.captureAndExit("=> Errors while setting up tests:", function () {
+    await main.captureAndExit("=> Errors while setting up tests:", async function () {
       // Read metadata and initialize catalog.
-      return projectContext.initializeCatalog();
+      return await projectContext.initializeCatalog();
     });
   } else {
     throw new Error("Unexpected: neither test-packages nor test");
@@ -2055,7 +2083,7 @@ async function doTestCommand(options) {
 
   options.cordovaRunner = cordovaRunner;
 
-  return runTestAppForPackages(projectContext, Object.assign(
+  return await runTestAppForPackages(projectContext, Object.assign(
     options,
     {
       mobileServerUrl: utils.formatUrl(parsedMobileServerUrl),
@@ -2634,13 +2662,13 @@ main.registerCommand({
     if (arg0 === undefined) {
       const ask = createPrompt();
       // the ANSI color chart is here: https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
-      const scaffoldName = await ask(`What is the name of your ${yellow('model')}? `);
+      const scaffoldName = await ask(`What is the name of your ${yellow`model`}? `);
       checkScaffoldName(scaffoldName);
-      const areMethods = await ask(`There will be methods [${green('Y')}/${red('n')}]? press enter for ${green('yes')}  `);
+      const areMethods = await ask(`There will be methods [${green`Y`}/${red`n`}]? press enter for ${green`yes`}  `);
       const methods = sanitizeBoolAnswer(areMethods);
-      const arePublications = await ask(`There will be publications [${green('Y')}/${red('n')}]? press enter for ${green('yes')}  `);
+      const arePublications = await ask(`There will be publications [${green`Y`}/${red`n`}]? press enter for ${green`yes`}  `);
       const publications = sanitizeBoolAnswer(arePublications);
-      const path = await ask(`Where it will be placed? press enter for ${yellow('./imports/api/')} `);
+      const path = await ask(`Where it will be placed? press enter for ${yellow`./imports/api/`} `);
       return {
         isWizard: true,
         scaffoldName,
@@ -2703,8 +2731,8 @@ main.registerCommand({
     const path = files.pathResolve(files.pathJoin(appDir, options.replaceFn));
     const replaceFn = require(path).transformFilename;
     if (typeof replaceFn !== 'function') {
-      Console.error(red('You must provide a valid function transformFilename.'));
-      Console.error(yellow('The function should be named transformFilename and should be exported.'));
+      Console.error(red`You must provide a valid function transformFilename.`);
+      Console.error(yellow`The function should be named transformFilename and should be exported.`);
       throw new main.ExitWithCode(2);
     }
     return replaceFn(scaffoldName, filename);
@@ -2717,8 +2745,8 @@ main.registerCommand({
     const path = files.pathResolve(files.pathJoin(appDir, options.replaceFn));
     const replaceFn = require(path).transformContents;
     if (typeof replaceFn !== 'function') {
-      Console.error(red('You must provide a valid function transformContents.'));
-      Console.error(yellow('The function should be named transformContents and should be exported.'));
+      Console.error(red`You must provide a valid function transformContents.`);
+      Console.error(yellow`The function should be named transformContents and should be exported.`);
       throw new main.ExitWithCode(2);
     }
     return replaceFn(scaffoldName, contents, fileName);
@@ -2772,8 +2800,8 @@ main.registerCommand({
   /// Program
   const rootFiles = getFilesInDir(appDir);
   if (!rootFiles.includes('.meteor')) {
-    Console.error(red('You must be in a Meteor project to run this command'));
-    Console.error(yellow('You can create a new Meteor project with `meteor create`'));
+    Console.error(red`You must be in a Meteor project to run this command`);
+    Console.error(yellow`You can create a new Meteor project with 'meteor create'`);
     throw new main.ExitWithCode(2);
   }
 
@@ -2793,8 +2821,8 @@ main.registerCommand({
   // create directory
   const isOk = files.mkdir_p(scaffoldPath);
   if (!isOk) {
-    Console.error(red('Something went wrong when creating the folder'));
-    Console.error(yellow('Do you have the correct permissions?'));
+    Console.error(red`Something went wrong when creating the folder`);
+    Console.error(yellow`Do you have the correct permissions?`);
     throw new main.ExitWithCode(2);
   }
 

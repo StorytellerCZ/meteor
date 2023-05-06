@@ -393,7 +393,7 @@ Object.assign(ProjectContext.prototype, {
         // This error gets thrown if you request to go to a stage that's earlier
         // than where you started. Note that the error will be mildly confusing
         // because the key of STAGE does not match the value.
-        if (self.completedStage === STAGE.SAVE_CHANGED_METADATA)
+        if (self._completedStage === STAGE.SAVE_CHANGED_METADATA)
           throw Error("can't find requested stage " + targetStage);
 
         // The actual value of STAGE.FOO is the name of the method that takes
@@ -947,8 +947,8 @@ Object.assign(ProjectContext.prototype, {
     const { ConstraintSolver } = await loadIsopackage('constraint-solver');
 
     return new ConstraintSolver.PackagesResolver(this.projectCatalog, {
-      nudge() {
-        return Console.nudge(true);
+      yield() {
+        return Console.yield();
       },
       Profile: Profile,
       resultCache: this._resolverResultCache
@@ -1002,8 +1002,8 @@ Object.assign(ProjectContext.prototype, {
           ? null : self._forceRebuildPackages);
     }
 
-    await buildmessage.enterJob('building local packages', function () {
-      return self.isopackCache.buildLocalPackages();
+    await buildmessage.enterJob('building local packages', async function () {
+      return await self.isopackCache.buildLocalPackages();
     });
     self._completedStage = STAGE.BUILD_LOCAL_PACKAGES;
   }),

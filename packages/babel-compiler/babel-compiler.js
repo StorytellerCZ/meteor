@@ -83,7 +83,7 @@ BCp.processOneFileForTarget = function (inputFile, source) {
       // compilation, give it the following file extension: .es5.js
       ! excludedFileExtensionPattern.test(inputFilePath)) {
 
-    const features = { ...this.extraFeatures };
+    const features = Object.assign({}, this.extraFeatures);
     const arch = inputFile.getArch();
 
     if (arch.startsWith("os.")) {
@@ -94,7 +94,10 @@ BCp.processOneFileForTarget = function (inputFile, source) {
       features.modernBrowsers = true;
     }
 
-    features.topLevelAwait = arch.startsWith('os.') || enableClientTLA
+    features.topLevelAwait = inputFile.supportsTopLevelAwait &&
+       (arch.startsWith('os.') || enableClientTLA);
+
+    features.useNativeAsyncAwait = Meteor.isFibersDisabled;
 
     if (! features.hasOwnProperty("jscript")) {
       // Perform some additional transformations to improve compatibility
@@ -127,7 +130,7 @@ BCp.processOneFileForTarget = function (inputFile, source) {
     this.inferExtraBabelOptions(
       inputFile,
       babelOptions,
-      cacheOptions.cacheDeps,
+      cacheOptions.cacheDeps
     );
 
     babelOptions.sourceMaps = true;

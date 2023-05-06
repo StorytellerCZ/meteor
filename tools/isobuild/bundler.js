@@ -2227,7 +2227,20 @@ class JsImage {
            * @param {Function} [asyncCallback] Optional callback, which is called asynchronously with the error or result after the function is complete. If not provided, the function runs synchronously.
            */
           getText: function (assetPath, callback) {
-            return getAsset(item.assets, assetPath, "utf8", callback);
+            const result = getAsset(item.assets, assetPath, "utf8", callback);
+
+            if (!callback) {
+              if (!Fiber.current) {
+                throw new Error("The synchronous Assets API can " +
+                    "only be called from within a Fiber.");
+              }
+
+              return Promise.await(result);
+            }
+          },
+
+          getTextAsync: function (assetPath) {
+            return getAsset(item.assets, assetPath, "utf8");
           },
 
           /**
@@ -2238,7 +2251,20 @@ class JsImage {
            * @param {Function} [asyncCallback] Optional callback, which is called asynchronously with the error or result after the function is complete. If not provided, the function runs synchronously.
            */
           getBinary: function (assetPath, callback) {
-            return getAsset(item.assets, assetPath, undefined, callback);
+            const result = getAsset(item.assets, assetPath, undefined, callback);
+
+            if (!callback) {
+              if (!Fiber.current) {
+                throw new Error("The synchronous Assets API can " +
+                    "only be called from within a Fiber.");
+              }
+
+              return Promise.await(result);
+            }
+          },
+
+          getBinaryAsync: function (assetPath) {
+            return getAsset(item.assets, assetPath, undefined);
           }
         }
       }, bindings || {});
@@ -2269,7 +2295,7 @@ class JsImage {
     if (ret['core-runtime']) {
       var promise = ret['core-runtime'].waitUntilAllLoaded();
       if (promise) {
-        promise.await();
+        await promise
       }
     }
 
@@ -3269,13 +3295,17 @@ async function bundle({
         buildMode: buildOptions.buildMode
       });
 
-      await client.make({
-        packages: [app],
-        minifyMode: minifyMode,
-        minifiers: options.minifiers || [],
-        addCacheBusters: true,
-        onJsOutputFiles
-      });
+      try {
+        await client.make({
+          packages: [app],
+          minifyMode: minifyMode,
+          minifiers: options.minifiers || [],
+          addCacheBusters: true,
+          onJsOutputFiles,
+        });
+      } catch (e) {
+        // it's fine to fail here, but we don't want to propagate the error
+      }
 
       return client;
     });

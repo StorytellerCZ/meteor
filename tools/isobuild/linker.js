@@ -60,6 +60,7 @@ var Module = function (options) {
   // options
   self.useGlobalNamespace = options.useGlobalNamespace;
   self.combinedServePath = options.combinedServePath;
+  self.addEagerRequires = !!options.addEagerRequires;
 };
 
 Object.assign(Module.prototype, {
@@ -166,7 +167,14 @@ Object.assign(Module.prototype, {
         ret.push(prelinked);
       }
 
-      return ret;
+      // TODO[fibers]: This is a temporary hack to make sure that we don't return the same
+        // file twice. I'm not sure why, but self.files sometimes contains the same file twice.
+        // these tool tests fail without this hack:
+        // - assets - unicode asset names are allowed
+        // - javascript hot code push
+        // and probably others
+      const uniqueHashes = [...new Set(ret.map((f) => f.hash))];
+      return uniqueHashes.map((h) => ret.find((f) => f.hash === h));
     }
 
     // Otherwise..
@@ -208,6 +216,10 @@ Object.assign(Module.prototype, {
           result.eagerModulePaths.push(file.absModuleId);
           if (file.mainModule) {
             result.mainModulePath = file.absModuleId;
+          }
+
+          if (self.addEagerRequires) {
+            chunks.push(`\nrequire(${JSON.stringify(file.absModuleId)});`);
           }
         }
       }
@@ -1076,6 +1088,10 @@ function wrapWithHeaderAndFooter(files, header, footer) {
       return file;
     }
 
+    if (file.source.includes('FROM SERVERRR')) {
+      console.log("FOUNDDDDDDDD", file.servePath, file.sourcePath);
+    }
+
     if (file.sourceMap) {
       var sourceMap = file.sourceMap;
       sourceMap.mappings = headerContent + sourceMap.mappings;
@@ -1151,6 +1167,10 @@ export var fullLink = Profile("linker.fullLink", async function (inputFiles, {
     bundleArch,
     useGlobalNamespace: isApp,
     combinedServePath,
+    // To support `/client/compatibility`, we can't use the runtime for the
+    // app on the client when TLA is disabled since it wraps all of
+    // the app code in a function. Instead, we have the module add eager requires.
+    addEagerRequires: !bundleArch.startsWith('os.') && isApp && !enableClientTLA
   });
 
   // Check if the core-runtime package will already be loaded
@@ -1189,6 +1209,15 @@ export var fullLink = Profile("linker.fullLink", async function (inputFiles, {
       (bundleArch.startsWith('os.') || enableClientTLA);
 
     if (wrapForTLA) {
+      // Ensure there is always at least one file
+      // so the globals can be defined
+      if (prelinkedFiles.length === 0) {
+        prelinkedFiles.unshift({
+          source: '',
+          servePath: "/global-imports.js"
+        });
+      }
+
       let header = getHeader({
         name: null,
         imports,

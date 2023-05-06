@@ -253,6 +253,7 @@ MongoConnection.prototype.createCappedCollectionAsync = async function (
   if (! self.db)
     throw Error("createCappedCollectionAsync called before Connection created?");
 
+
   await self.db.createCollection(collectionName,
     { capped: true, size: byteSize, max: maxDocuments });
 };
@@ -405,6 +406,7 @@ MongoConnection.prototype.removeAsync = async function (collection_name, selecto
 
 MongoConnection.prototype.dropCollectionAsync = async function(collectionName) {
   var self = this;
+
 
   var write = self._maybeBeginWrite();
   var refresh = function() {
@@ -759,6 +761,10 @@ MongoConnection.prototype.createIndexAsync = async function (collectionName, ind
   await collection.createIndex(index, options);
 };
 
+// just to be consistent with the other methods
+MongoConnection.prototype.createIndex =
+  MongoConnection.prototype.createIndexAsync;
+
 MongoConnection.prototype.countDocuments = function (collectionName, ...args) {
   args = args.map(arg => replaceTypes(arg, replaceMeteorAtomWithMongo));
   const collection = this.rawCollection(collectionName);
@@ -775,6 +781,7 @@ MongoConnection.prototype.ensureIndexAsync = MongoConnection.prototype.createInd
 
 MongoConnection.prototype.dropIndexAsync = async function (collectionName, index) {
   var self = this;
+
 
   // This function is only used by test code, not within a method, so we don't
   // interact with the write fence.
@@ -877,7 +884,12 @@ Cursor.prototype.countAsync = async function () {
 
   const methodNameAsync = getAsyncMethodName(methodName);
   Cursor.prototype[methodNameAsync] = function (...args) {
-    return Promise.resolve(this[methodName](...args));
+    try {
+      this[methodName].isCalledFromAsync = true;
+      return Promise.resolve(this[methodName](...args));
+    } catch (error) {
+      return Promise.reject(error);
+    }
   };
 });
 
@@ -1235,6 +1247,7 @@ _.extend(SynchronousCursor.prototype, {
 
   forEach: function (callback, thisArg) {
     var self = this;
+    const wrappedFn = Meteor.wrapFn(callback);
 
     // Get back to the beginning.
     self._rewind();
@@ -1246,16 +1259,17 @@ _.extend(SynchronousCursor.prototype, {
     while (true) {
       var doc = self._nextObject();
       if (!doc) return;
-      callback.call(thisArg, doc, index++, self._selfForIteration);
+      wrappedFn.call(thisArg, doc, index++, self._selfForIteration);
     }
   },
 
   // XXX Allow overlapping callback executions if callback yields.
   map: function (callback, thisArg) {
     var self = this;
+    const wrappedFn = Meteor.wrapFn(callback);
     var res = [];
     self.forEach(function (doc, index) {
-      res.push(callback.call(thisArg, doc, index, self._selfForIteration));
+      res.push(wrappedFn.call(thisArg, doc, index, self._selfForIteration));
     });
     return res;
   },
