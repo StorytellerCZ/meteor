@@ -54,8 +54,10 @@ downloadOfficialBun() {
   BUN_URL="https://github.com/oven-sh/bun/releases/download/bun-v${BUN_VERSION}/${BUN_ZIP}"
   echo "Downloading Bun from ${BUN_URL}" >&2
   curl "${BUN_URL}" -L0 | jar xv
-  mv $BUN_FILE_NAME/* .
+  mkdir bin
+  mv "${BUN_FILE_NAME}/bun" "bin/bun"
   rm -d $BUN_FILE_NAME
+  chmod +x "bin/bun"
   echo "Bun installation complete."
 }
 
