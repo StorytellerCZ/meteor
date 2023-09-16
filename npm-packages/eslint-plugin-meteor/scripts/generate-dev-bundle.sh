@@ -164,8 +164,6 @@ then
     mv pacote npm/node_modules/
 fi
 
-delete sqlite3/deps
-delete sqlite3/node_modules/node-pre-gyp
 delete wordwrap/test
 delete moment/min
 

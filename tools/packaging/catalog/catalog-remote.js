@@ -1,5 +1,6 @@
 var _ = require('underscore');
-var sqlite3 = require('sqlite3');
+var sqlite = require("bun:sqlite");
+var Database = sqlite.Database;
 
 var files = require('../../fs/files');
 var utils = require('../../utils/utils.js');
@@ -278,7 +279,7 @@ Object.assign(Db.prototype, {
     }
 
     Console.debug("Opening db file", dbFile);
-    return new sqlite3.Database(files.convertToOSPath(dbFile));
+    return new Database(files.convertToOSPath(dbFile));
   },
 
   // Runs a query synchronously, returning all rows

@@ -4,7 +4,8 @@
 // This file replicates some functionality from elsewhere in tools code,
 // but that's unavoidable if we don't want to install Babel and load all
 // the rest of the code every time we run `meteor npm` or `meteor node`.
-
+var sqlite = require("bun:sqlite");
+var Database = sqlite.Database;
 var fs = require("fs");
 var path = require("path");
 var links = require("./dev-bundle-links.js");
@@ -104,11 +105,10 @@ function getDevBundleForRelease(release) {
     return null;
   }
 
-  var sqlite3 = require("sqlite3");
-  var db = new sqlite3.Database(dbPath);
+  var db = new Database(dbPath);
 
   return new Promise(function (resolve, reject) {
-    db.get(
+    db.query(
       "SELECT content FROM releaseVersions WHERE track=? AND version=?",
       [track, version],
       function (error, data) {

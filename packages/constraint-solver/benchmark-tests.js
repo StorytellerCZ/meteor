@@ -22,8 +22,7 @@ runBenchmarks && Tinytest.add("constraint solver - benchmark on gems - sinatra",
     'haml': '3.1.7',
     'sass': '3.2.1',
     'shotgun': '0.9.0',
-    'sinatra': '1.3.5',
-    'sqlite3': '1.3.7'
+    'sinatra': '1.3.5'
   });
 
   r.resolve(args.dependencies, args.constraints);

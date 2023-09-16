@@ -1,4 +1,4 @@
-require("./cli/dev-bundle-bin-commands.js").then(function (child) {
+require("./cli/dev-bundle-bin-commands.ts").then(function (child) {
   if (! child) {
     // Use process.nextTick here to prevent the Promise from swallowing
     // errors from the rest of the setup code.
@@ -17,5 +17,5 @@ function continueSetup() {
   require('./tool-env/install-babel.js');
 
   // Run the Meteor command line tool
-  require('./cli/main.js');
+  require('./cli/main.ts');
 }

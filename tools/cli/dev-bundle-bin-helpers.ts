@@ -37,9 +37,8 @@ exports.getCommand = function (name, devBundleDir) {
 };
 
 function isValidCommand(name, devBundleDir) {
-  if (name === "node" ||
-      name === "npm" ||
-      name === "npx") {
+  if (name === "bun" ||
+      name === "bunx") {
     return true;
   }
 

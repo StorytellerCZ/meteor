@@ -40,7 +40,6 @@ var packageJson = {
     kexec: "https://github.com/meteor/node-kexec/archive/refs/heads/master.tar.gz",
     "source-map": "0.7.4",
     chalk: "4.1.1",
-    sqlite3: "5.0.2", // Bun has sqlite build-in, so we need to switch to that
     "http-proxy": "1.18.1",
     "is-reachable": "3.1.0",
     "wordwrap": "1.0.0",
