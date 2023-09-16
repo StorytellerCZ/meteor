@@ -85,12 +85,10 @@ function install_dev_bundle {
         echo "Skipping download and installing kit from $SCRIPT_DIR/$TARBALL" >&2
         tar -xzf "$SCRIPT_DIR/$TARBALL" -C "$BUNDLE_TMPDIR"
     elif [ -n "$SAVE_DEV_BUNDLE_TARBALL" ] ; then
-        echo "SAVE_DEV_BUNDLE_TARBALL"
         # URL duplicated in tools/server/target.sh.in
         curl -# "$DEV_BUNDLE_URL_ROOT$TARBALL" >"$SCRIPT_DIR/$TARBALL"
         tar -xzf "$SCRIPT_DIR/$TARBALL" -C "$BUNDLE_TMPDIR"
     else
-        echo "ELSE"
         echo "$DEV_BUNDLE_URL_ROOT$TARBALL"
         curl -# "$DEV_BUNDLE_URL_ROOT$TARBALL" | tar -xzf - -C "$BUNDLE_TMPDIR"
     fi
@@ -141,5 +139,5 @@ if [ "$(ulimit -Sn)" != "unlimited" ]; then
 fi
 
 
-exec "$DEV_BUNDLE/bin/bun run" \
+exec "$DEV_BUNDLE/bin/bun" \
      "$METEOR" "$@"
