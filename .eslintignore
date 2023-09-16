@@ -27,7 +27,7 @@ tools/fs/files.js
 tools/fs/mini-files.js
 tools/http-helpers.js
 tools/inspector.js
-tools/index.js
+tools/index.ts
 tools/mongo-exit-codes.ts
 tools/processes.ts
 tools/progress.ts
@@ -52,7 +52,7 @@ tools/cli/commands-cordova.js
 tools/cli/commands-packages-query.js
 tools/cli/commands-packages.js
 tools/cli/commands.js
-tools/cli/main.js
+tools/cli/main.ts
 
 tools/tool-env/flush-buffers-on-exit-in-windows.js
 tools/tool-env/install-babel.js

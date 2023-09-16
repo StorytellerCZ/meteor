@@ -1,4 +1,4 @@
-var main = require('./main.js');
+var main = require('./main.ts');
 var catalog = require('../packaging/catalog/catalog.js');
 var Console = require('../console/console.js').Console;
 

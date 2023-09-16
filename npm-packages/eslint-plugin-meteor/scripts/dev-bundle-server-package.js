@@ -9,7 +9,7 @@ var packageJson = {
   private: true,
   dependencies: {
     promise: "8.1.0",
-    "@meteorjs/reify": "0.24.0",
+    // "@meteorjs/reify": "0.25.0",
     "@babel/parser": "7.15.3",
     "@types/underscore": "1.11.2",
     underscore: "1.13.1",

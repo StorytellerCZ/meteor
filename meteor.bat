@@ -46,10 +46,10 @@ IF EXIST "%~dp0\.git" (
 SET NODE_PATH=%~dp0\dev_bundle\lib\node_modules
 SET BABEL_CACHE_DIR=%~dp0\.babel-cache
 
-"%~dp0\dev_bundle\bin\node.exe" ^
+"%~dp0\dev_bundle\bin\bun.exe" ^
   --no-wasm-code-gc ^
   %TOOL_NODE_FLAGS% ^
-  "%~dp0\tools\index.js" %*
+  "%~dp0\tools\index.ts" %*
 
 ENDLOCAL
 

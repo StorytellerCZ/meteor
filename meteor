@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-BUNDLE_VERSION=18.16.0.5
+BUNDLE_VERSION=101.0.2.0
 
 
 # OS Check. Put here because here is where we download the precompiled
@@ -65,11 +65,13 @@ function install_dev_bundle {
     set -e
     trap "echo Failed to install dependency kit." EXIT
 
+    echo "SET VARS"
     TARBALL="dev_bundle_${PLATFORM}_${BUNDLE_VERSION}.tar.gz"
     BUNDLE_TMPDIR="$SCRIPT_DIR/dev_bundle.xxx"
 
     rm -rf "$BUNDLE_TMPDIR"
     mkdir "$BUNDLE_TMPDIR"
+    echo "BUNDLE DIR END"
 
     # duplicated in scripts/windows/download-dev-bundle.ps1:
     DEV_BUNDLE_URL_ROOT="https://d3sqy0vbqsdhku.cloudfront.net/"
@@ -81,18 +83,23 @@ function install_dev_bundle {
         DEV_BUNDLE_URL_ROOT="https://s3.amazonaws.com/com.meteor.static/test/"
     fi
 
+    echo "IF SWITCH"
     if [ -f "$SCRIPT_DIR/$TARBALL" ] ; then
         echo "Skipping download and installing kit from $SCRIPT_DIR/$TARBALL" >&2
         tar -xzf "$SCRIPT_DIR/$TARBALL" -C "$BUNDLE_TMPDIR"
     elif [ -n "$SAVE_DEV_BUNDLE_TARBALL" ] ; then
+        echo "SAVE_DEV_BUNDLE_TARBALL"
         # URL duplicated in tools/server/target.sh.in
         curl -# "$DEV_BUNDLE_URL_ROOT$TARBALL" >"$SCRIPT_DIR/$TARBALL"
         tar -xzf "$SCRIPT_DIR/$TARBALL" -C "$BUNDLE_TMPDIR"
     else
+        echo "ELSE"
+        echo "$DEV_BUNDLE_URL_ROOT$TARBALL"
         curl -# "$DEV_BUNDLE_URL_ROOT$TARBALL" | tar -xzf - -C "$BUNDLE_TMPDIR"
     fi
 
-    test -x "${BUNDLE_TMPDIR}/bin/node" # bomb out if it didn't work, eg no net
+    echo "TEST BUN"
+    test -x "${BUNDLE_TMPDIR}/bin/bun" # bomb out if it didn't work, eg no net
 
     # Delete old dev bundle and rename the new one on top of it.
     rm -rf "$SCRIPT_DIR/dev_bundle"
@@ -122,7 +129,7 @@ if [ -d "$SCRIPT_DIR/.git" ] || [ -f "$SCRIPT_DIR/.git" ]; then
 fi
 
 DEV_BUNDLE="$SCRIPT_DIR/dev_bundle"
-METEOR="$SCRIPT_DIR/tools/index.js"
+METEOR="$SCRIPT_DIR/tools/index.ts"
 
 # Set the nofile ulimit as high as permitted by the hard-limit/kernel
 if [ "$(ulimit -Sn)" != "unlimited" ]; then
@@ -137,16 +144,6 @@ if [ "$(ulimit -Sn)" != "unlimited" ]; then
     fi
 fi
 
-# We used to set $NODE_PATH here to include the node_modules from the dev
-# bundle, but now we just get them from the symlink at tools/node_modules. This
-# is better because node_modules directories found via the ancestor walk from
-# the script take precedence over $NODE_PATH; it used to be that users would
-# screw up their meteor installs by have a ~/node_modules
 
-# --no-wasm-code-gc is currently necessary as a workaround for
-# https://github.com/nodejs/node/issues/29767
-exec "$DEV_BUNDLE/bin/node" \
-     --max-old-space-size=4096 \
-     --no-wasm-code-gc \
-     ${TOOL_NODE_FLAGS} \
+exec "$DEV_BUNDLE/bin/bun run" \
      "$METEOR" "$@"

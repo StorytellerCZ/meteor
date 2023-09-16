@@ -7,7 +7,7 @@ var catalog = require('../packaging/catalog/catalog.js');
 var Console = require('../console/console.js').Console;
 var files = require('../fs/files');
 import { loadIsopackage } from '../tool-env/isopackets.js';
-var main = require('./main.js');
+var main = require('./main.ts');
 var packageVersionParser = require('../packaging/package-version-parser.js');
 var projectContextModule = require('../project-context.js');
 var utils = require('../utils/utils.js');

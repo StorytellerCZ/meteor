@@ -49,8 +49,19 @@ downloadReleaseCandidateNode() {
     curl "${NODE_URL}" | tar zx --strip-components 1
 }
 
+downloadOfficialBun() {
+  BUN_ZIP="${BUN_FILE_NAME}.zip"
+  BUN_URL="https://github.com/oven-sh/bun/releases/download/bun-v${BUN_VERSION}/${BUN_ZIP}"
+  echo "Downloading Bun from ${BUN_URL}" >&2
+  curl "${BUN_URL}" -L0 | jar xv
+  mv $BUN_FILE_NAME/* .
+  rm -d $BUN_FILE_NAME
+  echo "Bun installation complete."
+}
+
 # Try each strategy in the following order:
-extractNodeFromTarGz || downloadNodeFromS3 || downloadOfficialNode || downloadReleaseCandidateNode
+#extractNodeFromTarGz || downloadNodeFromS3 || downloadOfficialNode || downloadReleaseCandidateNode
+downloadOfficialBun
 
 # On macOS, download MongoDB from mongodb.com. On Linux, download a custom build
 # that is compatible with current distributions. If a 32-bit Linux is used,
@@ -91,26 +102,26 @@ rm -rf "${MONGO_NAME}"
 # export path so we use the downloaded node and npm
 export PATH="$DIR/bin:$PATH"
 
-cd "$DIR/lib"
+#cd "$DIR/lib"
 # Overwrite the bundled version with the latest version of npm.
-npm install "npm@$NPM_VERSION"
+#npm install "npm@$NPM_VERSION"
 # Starting from npm v9.5.1 we can't set the python (and many others) config
 # https://github.com/npm/cli/issues/6126
 # for now we'll not set it anymore and see if it works
 # if it doesn't, we can set python3 in other ways
 #npm config set python `which python3`
-which node
-which npm
-npm version
+#which node
+#which npm
+#npm version
 
 # Make node-gyp use Node headers and libraries from $DIR/include/node.
 export HOME="$DIR"
 export USERPROFILE="$DIR"
-export npm_config_nodedir="$DIR"
+#export npm_config_nodedir="$DIR"
 
-INCLUDE_PATH="${DIR}/include/node"
-echo "Contents of ${INCLUDE_PATH}:"
-ls -al "$INCLUDE_PATH"
+#INCLUDE_PATH="${DIR}/include/node"
+#echo "Contents of ${INCLUDE_PATH}:"
+#ls -al "$INCLUDE_PATH"
 
 # When adding new node modules (or any software) to the dev bundle,
 # remember to update LICENSE.txt! Also note that we include all the
@@ -128,28 +139,30 @@ node "${CHECKOUT_DIR}/scripts/dev-bundle-server-package.js" > package.json
 # XXX For no apparent reason this npm install will fail with an EISDIR
 # error if we do not help it by creating the .npm/_locks directory.
 mkdir -p "${DIR}/.npm/_locks"
-npm install
-npm shrinkwrap
+bun install
+#npm shrinkwrap
 
 mkdir -p "${DIR}/server-lib/node_modules"
 # This ignores the stuff in node_modules/.bin, but that's OK.
 cp -R node_modules/* "${DIR}/server-lib/node_modules/"
 
 mkdir -p "${DIR}/etc"
-mv package.json npm-shrinkwrap.json "${DIR}/etc/"
+#mv package.json npm-shrinkwrap.json "${DIR}/etc/"
 
 # Now, install the npm modules which are the dependencies of the command-line
 # tool.
 mkdir "${DIR}/build/npm-tool-install"
 cd "${DIR}/build/npm-tool-install"
-node "${CHECKOUT_DIR}/scripts/dev-bundle-tool-package.js" >package.json
-npm install
+bun "${CHECKOUT_DIR}/scripts/dev-bundle-tool-package.js" > package.json
+bun install
+mkdir -p "${DIR}/lib/node_modules/"
 cp -R node_modules/* "${DIR}/lib/node_modules/"
 
 #Also copy package.json and package-lock.json to lib folder so that npm
 # keep everything installed correctly
 cp package.json "${DIR}/lib/"
-cp package-lock.json "${DIR}/lib/"
+#cp package-lock.json "${DIR}/lib/"
+cp bun.lockb "${DIR}/lib/"
 # Also include node_modules/.bin, so that `meteor npm` can make use of
 # commands like node-gyp and node-pre-gyp.
 cp -R node_modules/.bin "${DIR}/lib/node_modules/"
@@ -171,6 +184,7 @@ delete () {
     rm -rf "$1"
 }
 
+# TODO check into using Bun's sqlite
 delete sqlite3/deps
 delete sqlite3/node_modules/node-pre-gyp
 delete wordwrap/test

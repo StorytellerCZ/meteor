@@ -1,4 +1,4 @@
-var main = require('./main.js');
+var main = require('./main.ts');
 var _ = require('underscore');
 var files = require('../fs/files');
 var deploy = require('../meteor-services/deploy.js');

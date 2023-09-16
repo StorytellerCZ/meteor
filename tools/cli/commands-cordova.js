@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import main from './main.js';
+import main from './main.ts';
 import { Console } from '../console/console.js';
 import catalog from '../packaging/catalog/catalog.js';
 import buildmessage from '../utils/buildmessage.js';

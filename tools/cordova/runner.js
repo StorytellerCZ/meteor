@@ -2,7 +2,7 @@ import _ from 'underscore';
 import buildmessage from '../utils/buildmessage.js';
 import runLog from '../runners/run-log.js';
 import { Console } from '../console/console.js';
-import main from '../cli/main.js';
+import main from '../cli/main.ts';
 
 export class CordovaRunner {
   constructor(cordovaProject, runTargets) {

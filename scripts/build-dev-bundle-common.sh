@@ -6,6 +6,7 @@ set -u
 UNAME=$(uname)
 ARCH=$(uname -m)
 NODE_VERSION=18.16.0
+BUN_VERSION=1.0.2
 MONGO_VERSION_64BIT=6.0.3
 MONGO_VERSION_32BIT=3.2.22
 NPM_VERSION=9.6.7
@@ -67,6 +68,7 @@ then
     elif [ "$ARCH" == "x86_64" ]
     then
         NODE_TGZ="node-v${NODE_VERSION}-linux-x64.tar.gz"
+        BUN_FILE_NAME="bun-linux-x64"
     else
         echo "Unknown architecture: $UNAME $ARCH"
         exit 1
@@ -77,6 +79,7 @@ then
         NODE_TGZ="node-v${NODE_VERSION}-darwin-arm64.tar.gz"
     else
         NODE_TGZ="node-v${NODE_VERSION}-darwin-x64.tar.gz"
+        BUN_FILE_NAME="bun-darwin-x64"
     fi
 else
     echo "Unknown architecture: $UNAME $ARCH"

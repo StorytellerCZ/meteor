@@ -25,7 +25,7 @@ catalog.Refresh.OnceAtStart.prototype.beforeCommand = async function () {
       Console.printError(catalog.refreshError);
       Console.error("This command requires an up-to-date package catalog.  Exiting.");
       // Avoid circular dependency.
-      throw new (require('../../cli/main.js').ExitWithCode)(1);
+      throw new (require('../../cli/main.ts').ExitWithCode)(1);
     }
   }
 };

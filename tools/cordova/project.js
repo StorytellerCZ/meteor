@@ -9,7 +9,7 @@ import utils from '../utils/utils.js';
 import { Console } from '../console/console.js';
 import { Profile } from '../tool-env/profile';
 import buildmessage from '../utils/buildmessage.js';
-import main from '../cli/main.js';
+import main from '../cli/main.ts';
 import { execFileAsync } from '../utils/processes';
 
 import { cordova as cordova_lib, events as cordova_events, CordovaError }
