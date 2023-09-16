@@ -65,13 +65,11 @@ function install_dev_bundle {
     set -e
     trap "echo Failed to install dependency kit." EXIT
 
-    echo "SET VARS"
     TARBALL="dev_bundle_${PLATFORM}_${BUNDLE_VERSION}.tar.gz"
     BUNDLE_TMPDIR="$SCRIPT_DIR/dev_bundle.xxx"
 
     rm -rf "$BUNDLE_TMPDIR"
     mkdir "$BUNDLE_TMPDIR"
-    echo "BUNDLE DIR END"
 
     # duplicated in scripts/windows/download-dev-bundle.ps1:
     DEV_BUNDLE_URL_ROOT="https://d3sqy0vbqsdhku.cloudfront.net/"
@@ -83,7 +81,6 @@ function install_dev_bundle {
         DEV_BUNDLE_URL_ROOT="https://s3.amazonaws.com/com.meteor.static/test/"
     fi
 
-    echo "IF SWITCH"
     if [ -f "$SCRIPT_DIR/$TARBALL" ] ; then
         echo "Skipping download and installing kit from $SCRIPT_DIR/$TARBALL" >&2
         tar -xzf "$SCRIPT_DIR/$TARBALL" -C "$BUNDLE_TMPDIR"
@@ -98,7 +95,6 @@ function install_dev_bundle {
         curl -# "$DEV_BUNDLE_URL_ROOT$TARBALL" | tar -xzf - -C "$BUNDLE_TMPDIR"
     fi
 
-    echo "TEST BUN"
     test -x "${BUNDLE_TMPDIR}/bin/bun" # bomb out if it didn't work, eg no net
 
     # Delete old dev bundle and rename the new one on top of it.
