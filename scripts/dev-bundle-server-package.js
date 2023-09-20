@@ -8,13 +8,11 @@ var packageJson = {
   name: "meteor-dev-bundle",
   private: true,
   dependencies: {
-    "bun-types": "1.0.2",
     // Keep the versions of these packages consistent with the versions
     // found in dev-bundle-tool-package.js.
     promise: "8.1.0",
     // "@meteorjs/reify": "0.25.0",
     // "@babel/parser": "7.15.3",
-    "@types/underscore": "1.11.2",
     underscore: "1.13.1",
     "source-map-support": "https://github.com/meteor/node-source-map-support/archive/refs/heads/master.tar.gz",
     "@types/semver": "5.4.0",
@@ -23,6 +21,8 @@ var packageJson = {
   // These are only used in dev mode (by shell.js) so end-users can avoid
   // needing to install them if they use `npm install --production`.
   devDependencies: {
+    "@types/underscore": "1.11.2",
+    "bun-types": "1.0.2",
     split2: "3.2.2",
     multipipe: "1.0.2",
     chalk: "0.5.1"
