@@ -1,5 +1,5 @@
 const fs = require("fs");
-const { convertToOSPath } = require("./convert-to-os-path.js");
+const { convertToOSPath } = require("./convert-to-os-path.ts");
 
 exports.makeLink = function (target, linkPath) {
   target = convertToOSPath(target);

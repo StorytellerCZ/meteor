@@ -1,4 +1,4 @@
-function toDosPath(path) {
+export function toDosPath(path: string) {
   if (path[0] === "/") {
     if (! /^\/[A-Za-z](\/|$)/.test(path)) {
       throw new Error("Surprising path: " + path);
@@ -10,11 +10,9 @@ function toDosPath(path) {
   return path.split("/").join("\\");
 }
 
-function convertToOSPath(path) {
+export function convertToOSPath(path: string) {
   if (process.platform === "win32") {
     return toDosPath(path);
   }
   return path;
 }
-
-exports.convertToOSPath = convertToOSPath;
